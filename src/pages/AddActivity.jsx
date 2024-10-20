@@ -6,6 +6,7 @@ import { doc, setDoc } from "firebase/firestore";
 import { db, storage } from "../config/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { v4 } from "uuid";
+import HeaderOrganizer from "../components/HeaderOrganizer";
 
 function AddActivity() {
   const location = useLocation();
@@ -140,7 +141,7 @@ function AddActivity() {
 
   return (
     <div className="bg-white raleway min-h-screen">
-      <Header login={userId} />
+      <HeaderOrganizer login={userId} />
       {errorMsg && (
         <div className="flex justify-center mt-4">
           <div className="bg-red-700 px-5 py-2 rounded-full text-white font-bold raleway">

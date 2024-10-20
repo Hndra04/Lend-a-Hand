@@ -62,23 +62,15 @@ const HeaderOrganizer = ({login}) => {
           <img className='w-10' src="./assets/Icons/Logo_Blue.png" alt="" />
           <h1 className='font-bold blue text-2xl'>Lend-a-Hand</h1>
         </button>
-        {
-          !login ?
-            <div className='flex gap-5 items-center'>
-              <LoginButton />
-              <RegisButton />
-            </div>
-          :
-            <div className='flex gap-5 items-center'>
-              <button className='p-1'>
-                <img className='w-8' src="./assets/Icons/Profile.png" alt="" onClick={() => {goToUserProfile(userData)}}/>
-              </button>
+        <div className='flex gap-5 items-center'>
+          <button className='p-1'>
+            <img className='w-8' src="./assets/Icons/Profile.png" alt="" onClick={() => {goToUserProfile(userData)}}/>
+          </button>
 
-              <button onClick={() => {setHide(false)}}>
-                <img src="./assets/Icons/Burger_Menu.svg" alt="" />
-              </button>
-            </div>
-        }
+          <button onClick={() => {setHide(false)}}>
+            <img src="./assets/Icons/Burger_Menu.svg" alt="" />
+          </button>
+        </div>
       </header>
       
       <div className={`side-panel ${hide ? '' : 'open'} bg-white blue raleway flex flex-col font-bold text-xl z-50 items-start gap-3`}>
