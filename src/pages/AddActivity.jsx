@@ -58,6 +58,10 @@ function AddActivity() {
     }
   };
 
+  const handleDelete = (arraySetter) => (index) => {
+    arraySetter((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -209,8 +213,7 @@ function AddActivity() {
             htmlFor="action"
             className="block text-gray-700 font-bold mb-2"
           >
-            Describe what you will ask the participant to do (Separate topic by
-            ",")
+            Describe what you will ask the participant to do
           </label>
           <input
             type="text"
@@ -223,9 +226,16 @@ function AddActivity() {
             {actionArray.map((act, index) => (
               <span
                 key={index}
-                className="bg-blue-200 text-blue-800 px-2 py-1 rounded-full mr-2 mb-2"
+                className="bg-blue-200 text-blue-800 px-2 py-1 rounded-full mr-2 mb-2 flex items-center"
               >
                 {act}
+                <button
+                  type="button"
+                  onClick={() => handleDelete(setActionArray)(index)}
+                  className="ml-2 text-red-500"
+                >
+                  &times; {/* X icon for delete */}
+                </button>
               </span>
             ))}
           </div>
@@ -234,8 +244,7 @@ function AddActivity() {
         {/* Goals Input */}
         <div className="mb-4">
           <label htmlFor="goal" className="block text-gray-700 font-bold mb-2">
-            Describe the goal that this action is trying to accomplish (Separate
-            topic by ",")
+            Describe the goal that this action is trying to accomplish
           </label>
           <input
             type="text"
@@ -248,9 +257,16 @@ function AddActivity() {
             {goalArray.map((g, index) => (
               <span
                 key={index}
-                className="bg-green-200 text-green-800 px-2 py-1 rounded-full mr-2 mb-2"
+                className="bg-green-200 text-green-800 px-2 py-1 rounded-full mr-2 mb-2 flex items-center"
               >
                 {g}
+                <button
+                  type="button"
+                  onClick={() => handleDelete(setGoalArray)(index)}
+                  className="ml-2 text-red-500"
+                >
+                  &times; {/* X icon for delete */}
+                </button>
               </span>
             ))}
           </div>
@@ -259,7 +275,7 @@ function AddActivity() {
         {/* Tags Input */}
         <div className="mb-4">
           <label htmlFor="tags" className="block text-gray-700 font-bold mb-2">
-            Add Tags (Separate topic by ",")
+            Add Tags
           </label>
           <input
             type="text"
@@ -272,9 +288,16 @@ function AddActivity() {
             {tagArray.map((tag, index) => (
               <span
                 key={index}
-                className="bg-purple-200 text-purple-800 px-2 py-1 rounded-full mr-2 mb-2"
+                className="bg-purple-200 text-purple-800 px-2 py-1 rounded-full mr-2 mb-2 flex items-center"
               >
                 {tag}
+                <button
+                  type="button"
+                  onClick={() => handleDelete(setTagArray)(index)}
+                  className="ml-2 text-red-500"
+                >
+                  &times; {/* X icon for delete */}
+                </button>
               </span>
             ))}
           </div>
