@@ -3,7 +3,7 @@ Lend-a-Hand is a dedicated platform that facilitates connections between donors 
 
 # How to run project
 
-### Download Necessary Modules
+### `Download Necessary Modules`
 
 ### `npm start`
 
