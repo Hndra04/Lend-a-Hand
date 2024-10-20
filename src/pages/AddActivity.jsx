@@ -2,11 +2,10 @@ import React, { useState } from "react";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import { useLocation } from "react-router-dom";
-import { doc, setDoc } from "firebase/firestore"; // Import Firestore functions
-import { db, storage } from "../config/firebase"; // Import Firestore storage
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Import Storage functions
+import { doc, setDoc } from "firebase/firestore";
+import { db, storage } from "../config/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { v4 } from "uuid";
-import HeaderOrganizer from "../components/HeaderOrganizer";
 
 function AddActivity() {
   const location = useLocation();
@@ -16,9 +15,12 @@ function AddActivity() {
   const [description, setDescription] = useState("");
   const [details, setDetails] = useState("");
   const [image, setImage] = useState(null);
-  const [action, setAction] = useState("");
-  const [goal, setGoal] = useState("");
-  const [tags, setTags] = useState("");
+  const [action, setAction] = useState(""); // Single input for actions
+  const [goal, setGoal] = useState(""); // Single input for goals
+  const [tags, setTags] = useState(""); // Single input for tags
+  const [actionArray, setActionArray] = useState([]); // Array for actions
+  const [goalArray, setGoalArray] = useState([]); // Array for goals
+  const [tagArray, setTagArray] = useState([]); // Array for tags
   const [type, setType] = useState("Donation");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -33,7 +35,26 @@ function AddActivity() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImage(file); // Store the file directly
+      setImage(file);
+    }
+  };
+
+  const handleInputChange = (setter) => (e) => {
+    setter(e.target.value);
+  };
+
+  const handleArrayInput = (setter, arraySetter) => (e) => {
+    const value = e.target.value;
+
+    if (value.endsWith(",")) {
+      // If the input ends with a comma, update the array and reset the input
+      const newValue = value.slice(0, -1).trim(); // Remove the comma
+      if (newValue) {
+        arraySetter((prev) => [...prev, newValue]); // Add new value to array
+      }
+      setter(""); // Clear input field
+    } else {
+      setter(value); // Update the input field
     }
   };
 
@@ -44,9 +65,9 @@ function AddActivity() {
     if (
       !description ||
       !details ||
-      !action ||
-      !goal ||
-      !tags ||
+      !actionArray.length || // Check if there are any actions
+      !goalArray.length || // Check if there are any goals
+      !tagArray.length || // Check if there are any tags
       !startDate ||
       !endDate ||
       !image ||
@@ -73,27 +94,25 @@ function AddActivity() {
 
     try {
       // Upload image to Firebase Storage
-      const storageRef = ref(storage, `files/${v4()}`); // Create a reference
-      await uploadBytes(storageRef, image); // Await the upload
+      const storageRef = ref(storage, `files/${v4()}`);
+      await uploadBytes(storageRef, image);
 
-      // Get the download URL after uploading
-      const url = await getDownloadURL(storageRef); // Get the URL for the uploaded image
+      const url = await getDownloadURL(storageRef);
 
-      // Reference to Firestore document
-      const docRef = doc(db, "actions", userId); // Use userId or some unique id
+      const docRef = doc(db, "actions", userId);
 
       // Save activity data to Firestore
       await setDoc(docRef, {
         by: userId,
         description,
         details,
-        goals: goal,
-        tags,
-        toDo: action,
+        goals: goalArray, // Store goals array
+        tags: tagArray, // Store tags array
+        toDo: actionArray, // Store actions array
         type,
         startDate,
         endDate,
-        image: url, // Save the image URL here
+        image: url,
         targetDonation,
       });
 
@@ -101,27 +120,27 @@ function AddActivity() {
       setDescription("");
       setDetails("");
       setImage(null);
-      setAction("");
-      setGoal("");
-      setTags("");
+      setAction(""); // Reset action input
+      setGoal(""); // Reset goal input
+      setTags(""); // Reset tags input
+      setActionArray([]); // Reset actions array
+      setGoalArray([]); // Reset goals array
+      setTagArray([]); // Reset tags array
       setType("Donation");
       setStartDate("");
       setEndDate("");
       setTargetDonation(0);
       setTermsAgreed(false);
-      setImgUrl(null); // Clear image URL after submission
-
-      // Optionally, redirect or display a success message here
+      setImgUrl(null);
     } catch (err) {
       console.error("Error adding activity:", err);
-      setErrorMsg("There was an error submitting your activity."); // Handle error appropriately
+      setErrorMsg("There was an error submitting your activity.");
     }
   };
 
   return (
     <div className="bg-white raleway min-h-screen">
-      <HeaderOrganizer login={userId} />
-      {/* Error Message Display */}
+      <Header login={userId} />
       {errorMsg && (
         <div className="flex justify-center mt-4">
           <div className="bg-red-700 px-5 py-2 rounded-full text-white font-bold raleway">
@@ -134,7 +153,6 @@ function AddActivity() {
         onSubmit={handleSubmit}
         className="bg-white max-w-2xl mx-auto p-4 mb-10"
       >
-        {/* Description Input */}
         <div className="mb-4">
           <label
             htmlFor="describe"
@@ -147,12 +165,11 @@ function AddActivity() {
             id="describe"
             className="w-full border rounded-lg p-2 h-12"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={handleInputChange(setDescription)}
             placeholder="Give a short description"
           />
         </div>
 
-        {/* Details Textarea */}
         <div className="mb-4">
           <label
             htmlFor="description"
@@ -164,12 +181,11 @@ function AddActivity() {
             id="description"
             className="w-full border rounded-lg p-2 h-40 resize-none"
             value={details}
-            onChange={(e) => setDetails(e.target.value)}
+            onChange={handleInputChange(setDetails)}
             placeholder="Give a detailed description"
           ></textarea>
         </div>
 
-        {/* Image Upload */}
         <div className="mb-4">
           <label htmlFor="image" className="block text-gray-700 font-bold mb-2">
             Add Image
@@ -187,58 +203,87 @@ function AddActivity() {
           )}
         </div>
 
-        {/* Action Input */}
+        {/* Actions Input */}
         <div className="mb-4">
           <label
             htmlFor="action"
             className="block text-gray-700 font-bold mb-2"
           >
-            Describe what you will ask the participant to do
+            Describe what you will ask the participant to do (Separate topic by
+            ",")
           </label>
           <input
             type="text"
-            id="action"
-            className="w-full border rounded-lg p-2 h-12"
+            className="w-full border rounded-lg p-2 h-12 mb-2"
             value={action}
-            onChange={(e) => setAction(e.target.value)}
+            onChange={handleArrayInput(setAction, setActionArray)}
             placeholder="Help clean the..."
           />
+          <div className="flex flex-wrap">
+            {actionArray.map((act, index) => (
+              <span
+                key={index}
+                className="bg-blue-200 text-blue-800 px-2 py-1 rounded-full mr-2 mb-2"
+              >
+                {act}
+              </span>
+            ))}
+          </div>
         </div>
 
-        {/* Goal Input */}
+        {/* Goals Input */}
         <div className="mb-4">
           <label htmlFor="goal" className="block text-gray-700 font-bold mb-2">
-            Describe the goal that this action is trying to accomplish
+            Describe the goal that this action is trying to accomplish (Separate
+            topic by ",")
           </label>
           <input
             type="text"
-            id="goal"
-            className="w-full border rounded-lg p-2 h-12"
+            className="w-full border rounded-lg p-2 h-12 mb-2"
             value={goal}
-            onChange={(e) => setGoal(e.target.value)}
-            placeholder="+ Lower flood chances"
+            onChange={handleArrayInput(setGoal, setGoalArray)}
+            placeholder="Lower flood chances..."
           />
+          <div className="flex flex-wrap">
+            {goalArray.map((g, index) => (
+              <span
+                key={index}
+                className="bg-green-200 text-green-800 px-2 py-1 rounded-full mr-2 mb-2"
+              >
+                {g}
+              </span>
+            ))}
+          </div>
         </div>
 
         {/* Tags Input */}
         <div className="mb-4">
           <label htmlFor="tags" className="block text-gray-700 font-bold mb-2">
-            Add tags that best describe this action
+            Add Tags (Separate topic by ",")
           </label>
           <input
             type="text"
-            id="tags"
-            className="w-full border rounded-lg p-2 h-12"
+            className="w-full border rounded-lg p-2 h-12 mb-2"
             value={tags}
-            onChange={(e) => setTags(e.target.value)}
-            placeholder="+ Nature"
+            onChange={handleArrayInput(setTags, setTagArray)}
+            placeholder="Enter tags..."
           />
+          <div className="flex flex-wrap">
+            {tagArray.map((tag, index) => (
+              <span
+                key={index}
+                className="bg-purple-200 text-purple-800 px-2 py-1 rounded-full mr-2 mb-2"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
         </div>
 
         {/* Type Selection */}
         <div className="mb-4">
           <label htmlFor="type" className="block text-gray-700 font-bold mb-2">
-            Type
+            Activity Type
           </label>
           <select
             id="type"
@@ -252,7 +297,6 @@ function AddActivity() {
           </select>
         </div>
 
-        {/* Target Donation Input (if type is "Donation") */}
         {type === "Donation" && (
           <div className="mb-4">
             <label
