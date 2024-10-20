@@ -3,7 +3,7 @@ import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
-  // API Key
+  // API KEY
 };
 
 const app = initializeApp(firebaseConfig);

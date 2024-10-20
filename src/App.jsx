@@ -19,7 +19,6 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/new-password" element={<NewPassword />} />
         <Route path="/forgot" element={<ForgotPassword />} />
-        <Route path="/add-activity" element={<AddActivity />} />
         <Route path="/login-page" element={<LoginPage />} />
         <Route path="/regis-page" element={<SignUp />} />
         <Route path="/activities" element={<Activities />} />

@@ -27,8 +27,8 @@ const SignUp = () => {
   // For navigation
   const navigate = useNavigate(); 
 
-  const goToMain = (userId) => {
-    navigate('/activities', { state: { userId }});
+  const goToMain = (userData) => {
+    navigate('/activities', { state: { userData }});
   };
 
   const handleSubmit = async (e) => {
@@ -57,26 +57,31 @@ const SignUp = () => {
 
     // Handle signup logic here, e.g., API call
     try{
-      // Create new user
-      const authCredential = await createUserWithEmailAndPassword(auth, email, password)
+      // Create new user with Firebase Authentication
+      const authCredential = await createUserWithEmailAndPassword(auth, email, password);
 
-      // Add user data to users db
-      const docref = doc(db, "users", authCredential.user.uid)
-      await setDoc(docref, {
-        email: email,
-        firstName: firstName,
-        lastName: lastName,
-        countryCode: countryCode,
-        phoneNumber: phoneNumber,
+      // Prepare user data
+      const userData = {
+        email,
+        firstName,
+        lastName,
+        countryCode,
+        phoneNumber,
         activitiesID: [],
         donationsID: [],
-        campaignsID: []
-      })
+        campaignsID: [],
+      };
 
-      goToMain(authCredential.user.uid)
-    } catch (err){
-      console.log(err)
-    }
+      // Add user data to Firestore
+      const docRef = doc(db, "users", authCredential.user.uid);
+      await setDoc(docRef, userData);
+
+      // Redirect to main page with user data and ID
+      goToMain({ id: authCredential.user.uid, ...userData });
+
+      } catch (err){
+        console.log(err)
+      }
   };
 
   let error = 

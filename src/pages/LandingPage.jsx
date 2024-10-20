@@ -11,7 +11,7 @@ import { useLocation } from 'react-router-dom';
 const LandingPage = () => {
   // Accept user credential
   const location = useLocation();
-  const { userId } = location.state || {}; // Safely access userId
+  const { userData } = location.state || {}; // Safely access userId
   
   useEffect(() => {
     document.title = "Lend-a-Hand";
@@ -19,7 +19,7 @@ const LandingPage = () => {
 
   return (
     <>
-      <Header login={userId}/>
+      <Header login={userData['id']}/>
 
       <div className='raleway font-bold text-4xl flex justify-between px-12'>
         <div className='flex items-center'>
