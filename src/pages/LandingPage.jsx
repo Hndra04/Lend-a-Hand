@@ -19,7 +19,7 @@ const LandingPage = () => {
 
   return (
     <>
-      <Header login={userData['id']}/>
+      <Header login={userData ? userData['id'] : false}/>
 
       <div className='raleway font-bold text-4xl flex justify-between px-12'>
         <div className='flex items-center'>

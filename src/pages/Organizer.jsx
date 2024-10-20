@@ -6,6 +6,7 @@ import SearchBar from '../components/SearchBar';
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import ActionInstance from '../components/ActionInstance';
+import HeaderOrganizer from '../components/HeaderOrganizer';
 
 const Organizer = () => {
   // Accept user credential
@@ -117,7 +118,7 @@ const Organizer = () => {
 
   return (
     <>
-      <Header login={userId}/>
+      <HeaderOrganizer login={userId}/>
 
       <div className='font-bold text-3xl raleway flex justify-between items-center px-20 py-10' style={{backgroundColor: '#EEF7FF'}}>
          <div>Welcome, {data.name}</div>
