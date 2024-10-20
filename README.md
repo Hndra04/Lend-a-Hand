@@ -20,18 +20,18 @@ Lend-a-Hand is a dedicated platform that facilitates connections between donors 
 ## How to run project
 # Clone Repository
 Open your terminal or command prompt and run the following command to clone the repository:
-# ```git clone https://github.com/Hndra04/lend-a-hand.git```
+# `git clone https://github.com/Hndra04/lend-a-hand.git`
 
 # Navigate to the Project Directory`
 Change into the project directory: 
-# ```cd lend-a-hand```
+# `cd lend-a-hand`
 
 
 # Download Necessary Modules
 Ensure you have Node.js and npm (Node Package Manager) installed on your machine. Then, install the project dependencies by running:
-# ```npm install```
+# `npm install`
 
-# `Insert Firebase API Key`
+# Insert Firebase API Key
 Insert Firebase API Key in /src/config/firebase.js
 
 # Start the project
