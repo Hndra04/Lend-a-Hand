@@ -1,52 +1,139 @@
-import React, { useState } from "react"; // Importing React and useState hook
-import Footer from "../components/Footer"; // Importing Footer component
-import Header from "../components/Header"; // Importing Header component
+import React, { useState } from "react";
+import Footer from "../components/Footer";
+import Header from "../components/Header";
 import { useLocation } from "react-router-dom";
+import { doc, setDoc } from "firebase/firestore"; // Import Firestore functions
+import { db, storage } from "../config/firebase"; // Import Firestore storage
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Import Storage functions
+import { v4 } from "uuid";
 
 function AddActivity() {
-  // Accept user credential
   const location = useLocation();
-  const { userId } = location.state || {}; // Safely access userId
+  const { userId } = location.state || {};
 
-  // State variables to manage form inputs
-  const [description, setDescription] = useState(""); // State for activity description
-  const [details, setDetails] = useState(""); // State for activity details
-  const [image, setImage] = useState(null); // State for storing uploaded image
-  const [action, setAction] = useState(""); // State for participant action description
-  const [goal, setGoal] = useState(""); // State for activity goal
-  const [tags, setTags] = useState(""); // State for tags associated with activity
-  const [type, setType] = useState("Donation"); // State for activity type
-  const [startDate, setStartDate] = useState(""); // State for start date of the activity
-  const [endDate, setEndDate] = useState(""); // State for end date of the activity
-  const [termsAgreed, setTermsAgreed] = useState(false); // State for terms agreement checkbox
-  const [targetDonation, setTargetDonation] = useState(0); // State for target donation amount
+  const [errorMsg, setErrorMsg] = useState("");
+  const [description, setDescription] = useState("");
+  const [details, setDetails] = useState("");
+  const [image, setImage] = useState(null);
+  const [action, setAction] = useState("");
+  const [goal, setGoal] = useState("");
+  const [tags, setTags] = useState("");
+  const [type, setType] = useState("Donation");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [termsAgreed, setTermsAgreed] = useState(false);
+  const [targetDonation, setTargetDonation] = useState(0);
+  const [imgUrl, setImgUrl] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault(); // Prevent default form submission
-    
-    
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0]; // Get the uploaded file
+    const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader(); // Create a FileReader to read the file
-      reader.onload = () => {
-        setImage(reader.result); // Set image state to the file data
-      };
-      reader.readAsDataURL(file); // Read the file as a data URL
+      setImage(file); // Store the file directly
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validation checks
+    if (
+      !description ||
+      !details ||
+      !action ||
+      !goal ||
+      !tags ||
+      !startDate ||
+      !endDate ||
+      !image ||
+      (type === "Donation" && targetDonation === 0)
+    ) {
+      setErrorMsg("Please fill out all fields before submitting.");
+      scrollToTop();
+      return;
+    }
+
+    if (!termsAgreed) {
+      setErrorMsg("You must agree to the Terms and Conditions.");
+      scrollToTop();
+      return;
+    }
+
+    if (!userId) {
+      setErrorMsg("User ID is not available.");
+      scrollToTop();
+      return;
+    }
+
+    setErrorMsg(""); // Clear error message on successful validation
+
+    try {
+      // Upload image to Firebase Storage
+      const storageRef = ref(storage, `files/${v4()}`); // Create a reference
+      await uploadBytes(storageRef, image); // Await the upload
+
+      // Get the download URL after uploading
+      const url = await getDownloadURL(storageRef); // Get the URL for the uploaded image
+
+      // Reference to Firestore document
+      const docRef = doc(db, "actions", userId); // Use userId or some unique id
+
+      // Save activity data to Firestore
+      await setDoc(docRef, {
+        by: userId,
+        description,
+        details,
+        goals: goal,
+        tags,
+        toDo: action,
+        type,
+        startDate,
+        endDate,
+        image: url, // Save the image URL here
+        targetDonation,
+      });
+
+      // Clear the form after successful submission
+      setDescription("");
+      setDetails("");
+      setImage(null);
+      setAction("");
+      setGoal("");
+      setTags("");
+      setType("Donation");
+      setStartDate("");
+      setEndDate("");
+      setTargetDonation(0);
+      setTermsAgreed(false);
+      setImgUrl(null); // Clear image URL after submission
+
+      // Optionally, redirect or display a success message here
+    } catch (err) {
+      console.error("Error adding activity:", err);
+      setErrorMsg("There was an error submitting your activity."); // Handle error appropriately
     }
   };
 
   return (
-    <div className="bg-white raleway">
-      {" "}
-      {/* Main container with white background */}
-      <Header login={userId} /> {/* Render Header component */}
-      <form onSubmit={handleSubmit} className="bg-white max-w-2xl mx-auto p-4 mb-10">
-        {/* Form for adding an activity */}
+    <div className="bg-white raleway min-h-screen">
+      <Header login={userId} />
+      {/* Error Message Display */}
+      {errorMsg && (
+        <div className="flex justify-center mt-4">
+          <div className="bg-red-700 px-5 py-2 rounded-full text-white font-bold raleway">
+            {errorMsg}
+          </div>
+        </div>
+      )}
 
-        {/* Action Description Input */}
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white max-w-2xl mx-auto p-4 mb-10"
+      >
+        {/* Description Input */}
         <div className="mb-4">
           <label
             htmlFor="describe"
@@ -58,13 +145,13 @@ function AddActivity() {
             type="text"
             id="describe"
             className="w-full border rounded-lg p-2 h-12"
-            value={description} // Bind state to input
-            onChange={(e) => setDescription(e.target.value)} // Update state on change
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
             placeholder="Give a short description"
           />
         </div>
 
-        {/* Description Textarea */}
+        {/* Details Textarea */}
         <div className="mb-4">
           <label
             htmlFor="description"
@@ -75,14 +162,13 @@ function AddActivity() {
           <textarea
             id="description"
             className="w-full border rounded-lg p-2 h-40 resize-none"
-            value={details} // Bind state to textarea
-            onChange={(e) => setDetails(e.target.value)} // Update state on change
-            rows={3}
+            value={details}
+            onChange={(e) => setDetails(e.target.value)}
             placeholder="Give a detailed description"
           ></textarea>
         </div>
 
-        {/* Image Upload Input */}
+        {/* Image Upload */}
         <div className="mb-4">
           <label htmlFor="image" className="block text-gray-700 font-bold mb-2">
             Add Image
@@ -90,19 +176,17 @@ function AddActivity() {
           <input
             type="file"
             id="image"
-            className="w-full border rounded-lg p-2" // Styling for file input
-            onChange={handleImageChange} // Handle file change
+            className="w-full border rounded-lg p-2"
+            onChange={handleImageChange}
           />
-          {image && (
-            <img
-              src={image}
-              alt="Uploaded image"
-              className="mt-2 w-full h-auto"
-            /> // Display uploaded image
+          {imgUrl && (
+            <div>
+              <img src={imgUrl} alt="Uploaded" className="mt-2 w-full h-auto" />
+            </div>
           )}
         </div>
 
-        {/* Action Description Input */}
+        {/* Action Input */}
         <div className="mb-4">
           <label
             htmlFor="action"
@@ -114,8 +198,8 @@ function AddActivity() {
             type="text"
             id="action"
             className="w-full border rounded-lg p-2 h-12"
-            value={action} // Bind state to input
-            onChange={(e) => setAction(e.target.value)} // Update state on change
+            value={action}
+            onChange={(e) => setAction(e.target.value)}
             placeholder="Help clean the..."
           />
         </div>
@@ -129,8 +213,8 @@ function AddActivity() {
             type="text"
             id="goal"
             className="w-full border rounded-lg p-2 h-12"
-            value={goal} // Bind state to input
-            onChange={(e) => setGoal(e.target.value)} // Update state on change
+            value={goal}
+            onChange={(e) => setGoal(e.target.value)}
             placeholder="+ Lower flood chances"
           />
         </div>
@@ -144,22 +228,22 @@ function AddActivity() {
             type="text"
             id="tags"
             className="w-full border rounded-lg p-2 h-12"
-            value={tags} // Bind state to input
-            onChange={(e) => setTags(e.target.value)} // Update state on change
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
             placeholder="+ Nature"
           />
         </div>
 
-        {/* Activity Type Selection */}
+        {/* Type Selection */}
         <div className="mb-4">
           <label htmlFor="type" className="block text-gray-700 font-bold mb-2">
             Type
           </label>
           <select
             id="type"
-            className="w-full border rounded-lg p-2" // Styling for select input
-            value={type} // Bind state to select
-            onChange={(e) => setType(e.target.value)} // Update state on change
+            className="w-full border rounded-lg p-2"
+            value={type}
+            onChange={(e) => setType(e.target.value)}
           >
             <option>Donation</option>
             <option>Activity</option>
@@ -167,21 +251,21 @@ function AddActivity() {
           </select>
         </div>
 
-        {/* Target Donation Input (only shown if type is "Donation") */}
+        {/* Target Donation Input (if type is "Donation") */}
         {type === "Donation" && (
           <div className="mb-4">
             <label
               htmlFor="targetDonation"
               className="block text-gray-700 font-bold mb-2"
             >
-              Target Donation
+              Target Donation (in Rupiah)
             </label>
             <input
               type="number"
               id="targetDonation"
               className="w-full border rounded-lg p-2 h-12"
-              value={targetDonation} // Bind state to input
-              onChange={(e) => setTargetDonation(parseInt(e.target.value))} // Update state on change
+              value={targetDonation}
+              onChange={(e) => setTargetDonation(parseInt(e.target.value))}
               placeholder="Enter target donation amount"
             />
           </div>
@@ -198,9 +282,9 @@ function AddActivity() {
           <input
             type="date"
             id="startDate"
-            className="w-full border rounded-lg p-2" // Styling for date input
-            value={startDate} // Bind state to input
-            onChange={(e) => setStartDate(e.target.value)} // Update state on change
+            className="w-full border rounded-lg p-2"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
           />
         </div>
 
@@ -215,30 +299,27 @@ function AddActivity() {
           <input
             type="date"
             id="endDate"
-            className="w-full border rounded-lg p-2" // Styling for date input
-            value={endDate} // Bind state to input
-            onChange={(e) => setEndDate(e.target.value)} // Update state on change
+            className="w-full border rounded-lg p-2"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
           />
         </div>
 
-        {/* Terms and Conditions Checkbox */}
+        {/* Terms Checkbox */}
         <div className="mb-4">
           <div className="flex items-center">
-            {/* Flexbox for checkbox and label */}
             <input
               type="checkbox"
               id="terms"
-              className="mr-2" // Margin to right for spacing
-              checked={termsAgreed} // Bind state to checkbox
-              onChange={() => setTermsAgreed(!termsAgreed)} // Toggle state on change
+              className="mr-2"
+              checked={termsAgreed}
+              onChange={() => setTermsAgreed(!termsAgreed)}
             />
             <label htmlFor="terms" className="text-gray-700 font-bold">
               I agree to the Terms and Conditions
             </label>
           </div>
           <p className="text-gray-700">
-            {" "}
-            {/* Removed margin */}
             You must agree to the Terms and Conditions before signing up for an
             account.
           </p>
@@ -246,16 +327,15 @@ function AddActivity() {
 
         {/* Submit Button */}
         <button
-          type="submit" // Button type set to submit
-          disabled={!termsAgreed} // Disable button until terms are agreed
-          className="w-full bg-orange hover:opacity-90 text-white font-bold py-2 px-4 rounded" // Button styling
+          type="submit"
+          className="w-full bg-orange hover:opacity-90 text-white font-bold py-2 px-4 rounded"
         >
           Add
         </button>
       </form>
-      <Footer /> {/* Render Footer component */}
+      <Footer />
     </div>
   );
 }
 
-export default AddActivity; // Export AddActivity component
+export default AddActivity;
