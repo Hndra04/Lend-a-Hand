@@ -1,0 +1,21 @@
+.raleway{
+  font-family: "Raleway", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+.blue{
+  color: #1C429A;
+}
+
+.orange{
+  color: #EE6C4D;
+}
+
+.bg-blue{
+  background-color: #1C429A;
+}
+
+.bg-orange{
+  background-color: #EE6C4D;
+}
