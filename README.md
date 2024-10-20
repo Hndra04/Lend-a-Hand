@@ -31,6 +31,7 @@ Change into the project directory:
 
 # Download Necessary Modules
 Ensure you have Node.js and npm (Node Package Manager) installed on your machine. Then, install the project dependencies by running:
+
 `npm install`
 
 # Insert Firebase API Key
