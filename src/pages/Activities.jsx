@@ -11,7 +11,7 @@ const Activities = () => {
 
   // Accept user credential
   const location = useLocation();
-  const { userId } = location.state || {}; // Safely access userId
+  const { userData } = location.state || {};
   
   // Use to filter actions
   const [filter, setFilter] = useState('All');
@@ -80,7 +80,7 @@ const Activities = () => {
   
   return (
     <div>
-      <Header login={userId}/>
+      <Header login={userData['id']}/>
 
       <div className='pb-10 raleway'>
         <section className="bg-blue-100 py-10 px-10 overflow-x-hidden" style={{ backgroundColor: '#EEF7FF' }}>
